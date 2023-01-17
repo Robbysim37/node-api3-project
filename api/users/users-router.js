@@ -10,6 +10,7 @@ const router = express.Router();
 
 const validateUserId = customMiddleware.validateUserId
 const validateUser = customMiddleware.validateUser
+const validatePost = customMiddleware.validatePost
 
 router.get('/', (req, res) => {
   // RETURN AN ARRAY WITH ALL THE USERS
@@ -50,20 +51,31 @@ router.delete('/:id',validateUserId, (req, res) => {
   // RETURN THE FRESHLY DELETED USER OBJECT
   // this needs a middleware to verify user id
   const id = req.params.id
-  userModel.remove(id).then(deletedUser => {
-    res.status(200).json(deletedUser)
+  userModel.getById(id).then(foundUser => {
+    userModel.remove(id).then(deletedUser => {
+      res.status(200).json(foundUser)})
   })
 });
 
-router.get('/:id/posts', (req, res) => {
+router.get('/:id/posts', validateUserId, (req, res) => {
   // RETURN THE ARRAY OF USER POSTS
   // this needs a middleware to verify user id
+  const id = req.params.id
+  userModel.getUserPosts(id).then(postArray => {
+    res.status(200).json(postArray)
+  })
 });
 
-router.post('/:id/posts', (req, res) => {
+router.post('/:id/posts',validateUserId,validatePost, (req, res) => {
   // RETURN THE NEWLY CREATED USER POST
   // this needs a middleware to verify user id
   // and another middleware to check that the request body is valid
+  console.log("This shouldn't show up")
+  const id = req.params.id
+  postModel.insert({user_id:id,text:req.body.text}).then(newPost => {
+    res.status(201).json(newPost)
+  })
+  
 });
 
 // do not forget to export the router
